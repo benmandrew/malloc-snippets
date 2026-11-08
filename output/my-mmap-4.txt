@@ -1,0 +1,5 @@
+$ ./my-mmap-4
+                                 break         anonymous RSS
+my_malloc(1 MiB), my_malloc(16)  start+64 KiB       1128 KiB
+my_free(1 MiB)                   start+64 KiB        100 KiB
+my_free(16)                      start+64 KiB        100 KiB

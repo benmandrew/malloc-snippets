@@ -1,0 +1,6 @@
+$ ./chunk-header
+ request    chunk
+       1       32
+      24       32
+      25       48
+    1000     1008

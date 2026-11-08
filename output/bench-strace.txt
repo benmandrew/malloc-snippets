@@ -1,0 +1,40 @@
+$ strace -c -e trace=brk,mmap,munmap ./bench-my-bump-1 > /dev/null
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+100.00    1.401005           2    504002           brk
+  0.00    0.000049           6         8           mmap
+  0.00    0.000007           7         1           munmap
+------ ----------- ----------- --------- --------- ----------------
+100.00    1.401061           2    504011           total
+$ strace -c -e trace=brk,mmap,munmap ./bench-my-freelist-2 > /dev/null
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 94.70    0.000143           1       116           brk
+  5.30    0.000008           8         1           munmap
+  0.00    0.000000           0         8           mmap
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000151           1       125           total
+$ strace -c -e trace=brk,mmap,munmap ./bench-my-trim-3 > /dev/null
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.001171           1       669           brk
+  0.00    0.000000           0         8           mmap
+  0.00    0.000000           0         1           munmap
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.001171           1       678           total
+$ strace -c -e trace=brk,mmap,munmap ./bench-my-mmap-4 > /dev/null
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 76.63    0.007741           1      5033           munmap
+ 20.18    0.002039           0      5040           mmap
+  3.19    0.000322           1       215           brk
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.010102           0     10288           total
+$ strace -c -e trace=brk,mmap,munmap ./bench-glibc > /dev/null
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 57.09    0.000503          11        44           munmap
+ 35.30    0.000311           1       161           brk
+  7.60    0.000067           1        51           mmap
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000881           3       256           total

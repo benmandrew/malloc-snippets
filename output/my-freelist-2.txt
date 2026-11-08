@@ -1,0 +1,9 @@
+$ ./my-freelist-2
+a = my_malloc(100)   [0, 128]     free: [128, 65408]
+b = my_malloc(200)   [128, 224]   free: [352, 65184]
+c = my_malloc(100)   [352, 128]   free: [480, 65056]
+my_free(a)                        free: [0, 128] [480, 65056]
+my_free(b)                        free: [0, 352] [480, 65056]
+d = my_malloc(50)    [0, 80]      free: [80, 272] [480, 65056]
+my_free(c)                        free: [80, 65456]
+my_free(d)                        free: [0, 65536]

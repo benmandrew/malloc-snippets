@@ -1,0 +1,147 @@
+--- my-freelist-2.c	2026-11-08 18:20:17.783617840 +0000
++++ my-trim-3.c	2026-11-08 18:20:53.515063205 +0000
+@@ -1,21 +1,20 @@
+-// Stage 2 of the toy allocator. Each chunk starts with a header holding its
+-// size, freed chunks go on a free list sorted by address, and the heap grows
+-// from sbrk in 64 KiB steps. A request takes the first free chunk big enough
+-// and splits off what it does not need. A freed chunk merges with any free
+-// neighbour it touches.
+-//
+-// Keeping the list sorted by address is how the toy finds those neighbours,
+-// at the cost of walking the list on every free. glibc finds them in
+-// constant time instead: each chunk's header records whether the chunk
+-// before it is in use (the PREV_INUSE bit), and a free chunk copies its size
+-// into its last word, so the chunk after it can step back to its start.
++// Stage 3 of the toy allocator: stage 2, plus my_free lowers the break when
++// the free chunk at the top of the heap reaches 128 KiB, keeping 64 KiB of
++// it. A live chunk at the top stops that, however much free memory sits
++// below it, and the demo shows a freed 1 MiB block staying resident.
++#include <fcntl.h>
+ #include <stddef.h>
+ #include <stdint.h>
+ #include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
+ #include <unistd.h>
+ 
+ #define ALIGN 16
+ #define GROW_SIZE (64 * 1024)
++#define PAGE_SIZE 4096
++#define TRIM_THRESHOLD (128 * 1024)
++#define TOP_PAD (64 * 1024)
+ 
+ typedef struct chunk {
+     size_t size;        // The whole chunk, header included. A multiple of 16.
+@@ -84,6 +83,25 @@
+     return (char *)c + HEADER_SIZE;
+ }
+ 
++// If the last free chunk ends at the break and has reached TRIM_THRESHOLD,
++// lowers the break to leave TOP_PAD bytes of it, so the next few requests
++// do not have to move the break straight back up. glibc does the same,
++// keeping 128 KiB.
++static void trim(void) {
++    chunk_t *top = free_list;
++    if (top == NULL)
++        return;
++    while (top->next != NULL)
++        top = top->next;
++    char *end = (char *)top + top->size;
++    if (end != (char *)sbrk(0) || top->size < TRIM_THRESHOLD)
++        return;
++    size_t release =
++        (top->size - TOP_PAD) / PAGE_SIZE * PAGE_SIZE;
++    top->size -= release;
++    sbrk(-(intptr_t)release);
++}
++
+ void *my_malloc(size_t size) {
+     size_t need = align_up(size + HEADER_SIZE, ALIGN);
+     for (chunk_t **link = &free_list; *link != NULL;
+@@ -96,8 +114,10 @@
+ }
+ 
+ void my_free(void *ptr) {
+-    if (ptr != NULL)
+-        insert_free((chunk_t *)((char *)ptr - HEADER_SIZE));
++    if (ptr == NULL)
++        return;
++    insert_free((chunk_t *)((char *)ptr - HEADER_SIZE));
++    trim();
+ }
+ 
+ // A static buffer for stdout, so printf never calls glibc's malloc, which
+@@ -105,41 +125,43 @@
+ static char out[4096];
+ static char *heap_start;
+ 
+-// Prints a step, the chunk it allocated if any, and the free list, every
+-// chunk as an [offset from heap start, size] pair. The offset is where the
+-// header starts, so an allocated chunk prints HEADER_SIZE before the pointer
+-// that my_malloc returned.
+-static void show(const char *step, void *p) {
+-    char used[32] = "";
+-    if (p != NULL) {
+-        chunk_t *c = (chunk_t *)((char *)p - HEADER_SIZE);
+-        snprintf(used, sizeof used, "[%td, %zu]", (char *)c - heap_start, c->size);
+-    }
+-    printf("%-21s%-12s free:", step, used);
+-    for (chunk_t *c = free_list; c != NULL; c = c->next)
+-        printf(" [%td, %zu]", (char *)c - heap_start, c->size);
+-    putchar('\n');
++// Reads the anonymous resident memory from /proc/self/smaps_rollup, in KiB,
++// with read() into a static buffer so that nothing calls glibc's malloc.
++static long anon_kib(void) {
++    static char buf[4096];
++    int fd = open("/proc/self/smaps_rollup", O_RDONLY);
++    ssize_t n = read(fd, buf, sizeof buf - 1);
++    close(fd);
++    buf[n > 0 ? n : 0] = '\0';
++    char *line = strstr(buf, "Anonymous:");
++    return line != NULL ? strtol(line + strlen("Anonymous:"), NULL, 10) : -1;
++}
++
++// Prints a step with the break and the anonymous resident memory, both in KiB,
++// under the column headings that big_below_small prints.
++static void show_rss(const char *step) {
++    char brk[32];
++    snprintf(brk, sizeof brk, "start%+td KiB", ((char *)sbrk(0) - heap_start) / 1024);
++    printf("%-33s%-14s%9ld KiB\n", step, brk, anon_kib());
++}
++
++// Frees a 1 MiB block that sits below a live 16-byte chunk, then the chunk.
++static void big_below_small(void) {
++    char *big = my_malloc(1 << 20);
++    char *small = my_malloc(16);
++    memset(big, 1, 1 << 20);
++    printf("%-33s%-14s%13s\n", "", "break", "anonymous RSS");
++    show_rss("my_malloc(1 MiB), my_malloc(16)");
++    my_free(big);
++    show_rss("my_free(1 MiB)");
++    my_free(small);
++    show_rss("my_free(16)");
+ }
+ 
+ int main(void) {
+     setvbuf(stdout, out, _IOFBF, sizeof out);
+     heap_start = sbrk(0);
+ 
+-    void *a = my_malloc(100);
+-    show("a = my_malloc(100)", a);
+-    void *b = my_malloc(200);
+-    show("b = my_malloc(200)", b);
+-    void *c = my_malloc(100);
+-    show("c = my_malloc(100)", c);
+-    my_free(a);
+-    show("my_free(a)", NULL);
+-    my_free(b);
+-    show("my_free(b)", NULL);
+-    void *d = my_malloc(50);
+-    show("d = my_malloc(50)", d);
+-    my_free(c);
+-    show("my_free(c)", NULL);
+-    my_free(d);
+-    show("my_free(d)", NULL);
++    big_below_small();
+     return 0;
+ }

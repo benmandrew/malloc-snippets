@@ -1,0 +1,8 @@
+$ ./layout
+main (text)            0x59c0791d7149
+initialised (data)     0x59c0791da020
+uninitialised (bss)    0x59c0791da028
+malloc(16) (heap)      0x59c0903182b0
+program break          0x59c090338000
+printf (libc)          0x711dcf7c15b0
+local (stack)          0x7ffff86c45ec

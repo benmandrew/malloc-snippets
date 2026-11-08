@@ -1,0 +1,5 @@
+$ ./my-trim-3
+                                 break         anonymous RSS
+my_malloc(1 MiB), my_malloc(16)  start+1088 KiB     1124 KiB
+my_free(1 MiB)                   start+1088 KiB     1124 KiB
+my_free(16)                      start+64 KiB        160 KiB

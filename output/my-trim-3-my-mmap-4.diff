@@ -1,0 +1,81 @@
+--- my-trim-3.c	2026-11-08 18:20:53.515063205 +0000
++++ my-mmap-4.c	2026-11-08 18:20:53.515474781 +0000
+@@ -1,23 +1,31 @@
+-// Stage 3 of the toy allocator: stage 2, plus my_free lowers the break when
+-// the free chunk at the top of the heap reaches 128 KiB, keeping 64 KiB of
+-// it. A live chunk at the top stops that, however much free memory sits
+-// below it, and the demo shows a freed 1 MiB block staying resident.
++// Stage 4 of the toy allocator: stage 3, plus requests of 128 KiB or more get
++// a mapping of their own, which my_free unmaps straight away. glibc only
++// maps a large request when its free chunks cannot serve it; the toy maps
++// every one. Its demo is the same as stage 3's, and the freed 1 MiB block now
++// leaves RSS at once.
+ #include <fcntl.h>
+ #include <stddef.h>
+ #include <stdint.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <sys/mman.h>
+ #include <unistd.h>
+ 
+ #define ALIGN 16
+ #define GROW_SIZE (64 * 1024)
+ #define PAGE_SIZE 4096
++#define MMAP_THRESHOLD (128 * 1024)
+ #define TRIM_THRESHOLD (128 * 1024)
+ #define TOP_PAD (64 * 1024)
+ 
++// Heap chunk sizes are multiples of 16, so the low bits of the size are
++// free for flags. The second-lowest marks a chunk that has a mapping of its
++// own, the same bit as glibc's IS_MMAPPED.
++#define MMAPPED 2
++
+ typedef struct chunk {
+-    size_t size;        // The whole chunk, header included. A multiple of 16.
++    size_t size;        // The whole chunk, header included, plus the MMAPPED bit.
+     struct chunk *next; // The next free chunk by address. Unused while allocated.
+ } chunk_t;
+ 
+@@ -83,6 +91,18 @@
+     return (char *)c + HEADER_SIZE;
+ }
+ 
++// Gives a request a mapping of its own, rounded up to whole pages, and marks
++// the chunk so that my_free knows to unmap it.
++static void *map_chunk(size_t need) {
++    size_t len = align_up(need, PAGE_SIZE);
++    chunk_t *c = mmap(NULL, len, PROT_READ | PROT_WRITE,
++                      MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
++    if (c == MAP_FAILED)
++        return NULL;
++    c->size = len | MMAPPED;
++    return (char *)c + HEADER_SIZE;
++}
++
+ // If the last free chunk ends at the break and has reached TRIM_THRESHOLD,
+ // lowers the break to leave TOP_PAD bytes of it, so the next few requests
+ // do not have to move the break straight back up. glibc does the same,
+@@ -104,6 +124,8 @@
+ 
+ void *my_malloc(size_t size) {
+     size_t need = align_up(size + HEADER_SIZE, ALIGN);
++    if (need >= MMAP_THRESHOLD)
++        return map_chunk(need);
+     for (chunk_t **link = &free_list; *link != NULL;
+          link = &(*link)->next)
+         if ((*link)->size >= need)
+@@ -116,7 +138,12 @@
+ void my_free(void *ptr) {
+     if (ptr == NULL)
+         return;
+-    insert_free((chunk_t *)((char *)ptr - HEADER_SIZE));
++    chunk_t *c = (chunk_t *)((char *)ptr - HEADER_SIZE);
++    if (c->size & MMAPPED) {
++        munmap(c, c->size & ~(size_t)MMAPPED);
++        return;
++    }
++    insert_free(c);
+     trim();
+ }
+ 

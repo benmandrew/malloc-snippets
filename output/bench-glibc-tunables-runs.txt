@@ -1,0 +1,11 @@
+$ for r in 1 2 3 4 5; do for t in tcache_count=0 mmap_threshold=131072; do GLIBC_TUNABLES=glibc.malloc.$t ./bench-glibc; done; done
+| glibc, tcache_count=0 | 120.8 ns | 17836 KiB | 256 KiB |
+| glibc, mmap_threshold=131072 | 865.0 ns | 12432 KiB | 5988 KiB |
+| glibc, tcache_count=0 | 115.0 ns | 17836 KiB | 256 KiB |
+| glibc, mmap_threshold=131072 | 850.5 ns | 12436 KiB | 5992 KiB |
+| glibc, tcache_count=0 | 138.9 ns | 17836 KiB | 256 KiB |
+| glibc, mmap_threshold=131072 | 842.4 ns | 12436 KiB | 5992 KiB |
+| glibc, tcache_count=0 | 124.4 ns | 17840 KiB | 260 KiB |
+| glibc, mmap_threshold=131072 | 842.2 ns | 12428 KiB | 5984 KiB |
+| glibc, tcache_count=0 | 116.7 ns | 17836 KiB | 256 KiB |
+| glibc, mmap_threshold=131072 | 843.1 ns | 12436 KiB | 5992 KiB |

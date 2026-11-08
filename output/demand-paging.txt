@@ -1,0 +1,8 @@
+$ ./demand-paging
+   written     faults        virtual       resident
+     0 MiB          3    1050916 KiB       1308 KiB
+   256 MiB      65539    1050916 KiB     263536 KiB
+   512 MiB     131075    1050916 KiB     525680 KiB
+   768 MiB     196611    1050916 KiB     787824 KiB
+  1024 MiB     262147    1050916 KiB    1049968 KiB
+  released     262147       2340 KiB       1392 KiB

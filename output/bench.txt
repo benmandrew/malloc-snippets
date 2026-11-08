@@ -1,0 +1,10 @@
+$ awk -f summarise.awk output/bench-runs.txt
+| Allocator | Time per free and malloc (µs), median of 5 runs | Anonymous RSS, blocks live (MiB) | Anonymous RSS, all freed (MiB) |
+|---|--:|--:|--:|
+| my-bump-1 | 1.72 | 1425 | 1425 |
+| my-freelist-2 | 5.12 | 17.8 | 17.8 |
+| my-trim-3 | 11.2 | 14.5 | 0.188 |
+| my-mmap-4 | 11.8 | 11.2 | 0.188 |
+| glibc | 0.0789 | 19.0 | 19.0 |
+$ bin/bench-glibc --sizes
+4000 blocks live, 10542 KiB of data; 1455332 KiB allocated in total

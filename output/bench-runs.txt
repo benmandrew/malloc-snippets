@@ -1,0 +1,26 @@
+$ for r in 1 2 3 4 5; do for a in my-bump-1 my-freelist-2 my-trim-3 my-mmap-4 glibc; do ./bench-$a; done; done
+| my-bump-1 | 1715.2 ns | 1459144 KiB | 1459144 KiB |
+| my-freelist-2 | 5116.8 ns | 18252 KiB | 18252 KiB |
+| my-trim-3 | 11242.1 ns | 14892 KiB | 192 KiB |
+| my-mmap-4 | 11746.3 ns | 11428 KiB | 196 KiB |
+| glibc | 75.8 ns | 19500 KiB | 19500 KiB |
+| my-bump-1 | 1712.7 ns | 1459136 KiB | 1459136 KiB |
+| my-freelist-2 | 5156.9 ns | 18256 KiB | 18256 KiB |
+| my-trim-3 | 11287.4 ns | 14892 KiB | 192 KiB |
+| my-mmap-4 | 11760.1 ns | 11420 KiB | 188 KiB |
+| glibc | 84.9 ns | 19500 KiB | 19500 KiB |
+| my-bump-1 | 1722.9 ns | 1459136 KiB | 1459136 KiB |
+| my-freelist-2 | 5121.1 ns | 18260 KiB | 18260 KiB |
+| my-trim-3 | 11276.7 ns | 14892 KiB | 192 KiB |
+| my-mmap-4 | 11723.2 ns | 11428 KiB | 196 KiB |
+| glibc | 77.6 ns | 19500 KiB | 19500 KiB |
+| my-bump-1 | 1733.6 ns | 1459136 KiB | 1459136 KiB |
+| my-freelist-2 | 5109.0 ns | 18256 KiB | 18256 KiB |
+| my-trim-3 | 11193.8 ns | 14896 KiB | 196 KiB |
+| my-mmap-4 | 11819.7 ns | 11420 KiB | 188 KiB |
+| glibc | 80.4 ns | 19504 KiB | 19504 KiB |
+| my-bump-1 | 1730.6 ns | 1459144 KiB | 1459144 KiB |
+| my-freelist-2 | 5103.1 ns | 18256 KiB | 18256 KiB |
+| my-trim-3 | 11226.9 ns | 14892 KiB | 192 KiB |
+| my-mmap-4 | 11798.0 ns | 11424 KiB | 192 KiB |
+| glibc | 78.9 ns | 19504 KiB | 19504 KiB |

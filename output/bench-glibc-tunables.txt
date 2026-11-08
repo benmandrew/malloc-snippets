@@ -1,0 +1,5 @@
+$ awk -f summarise.awk output/bench-glibc-tunables-runs.txt
+| Allocator | Time per free and malloc (µs), median of 5 runs | Anonymous RSS, blocks live (MiB) | Anonymous RSS, all freed (MiB) |
+|---|--:|--:|--:|
+| glibc, tcache_count=0 | 0.121 | 17.4 | 0.250 |
+| glibc, mmap_threshold=131072 | 0.843 | 12.1 | 5.85 |

@@ -1,0 +1,7 @@
+$ ./my-bump-1
+a = my_malloc(16)   start+0
+b = my_malloc(1)    start+16
+c = my_malloc(100)  start+32
+my_free(b)
+d = my_malloc(1)    start+144
+break               start+160

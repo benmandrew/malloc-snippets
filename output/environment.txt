@@ -1,0 +1,8 @@
+Linux 6.8.0-147-generic x86_64
+model name	: Intel(R) Xeon(R) CPU E3-1230 v3 @ 3.30GHz
+/sys/devices/system/cpu/vulnerabilities/meltdown:Mitigation: PTI
+/sys/devices/system/cpu/vulnerabilities/mds:Mitigation: Clear CPU buffers; SMT vulnerable
+ldd (Debian GLIBC 2.36-9+deb12u14) 2.36
+gcc (Debian 12.2.0-14+deb12u1) 12.2.0
+strace -- version 6.1
+page size 4096

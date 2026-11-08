@@ -1,0 +1,10 @@
+$ ./syscall-cost
+syscall(SYS_getppid)      580.0 ns per call
+sbrk(16)                  611.2 ns per call
+malloc(16)                 27.9 ns per call
+sbrk(16) / malloc(16)      21.9x
+mmap+munmap(128 KiB)     3625.8 ns per call
+  writing 32 pages      52618.7 ns per call
+malloc+free(128 KiB), writing 32 pages
+  reusing the heap        244.5 ns per call
+  mapped each time      52975.4 ns per call
